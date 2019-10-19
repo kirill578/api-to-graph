@@ -1,7 +1,7 @@
 {
-  "name": "app",
+  "name": "api-to-graph",
   "version": "0.1.0",
-  "homepage": "https://kirill578.github.io/react-template/",
+  "homepage": "https://kirill578.github.io/api-to-graph/",
   "dependencies": {
     "@material-ui/core": "^4.5.1",
     "@types/jest": "^24.0.19",
