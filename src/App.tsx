@@ -9,6 +9,7 @@ import {
   Legend,
 } from '@devexpress/dx-react-chart-material-ui';
 import { string } from 'prop-types';
+import { ValueScale } from '@devexpress/dx-react-chart';
 
 const formatDate = (date: Date) => {
   return date.toLocaleDateString('en-US', {
@@ -30,7 +31,17 @@ function timeConvert(n: number) {
   var minutes = (hours - rhours) * 60;
   var rminutes = Math.round(minutes);
   return rhours + ":" + rminutes;
-  }
+}
+
+const Label = (symbol: string) => (props: any) => {
+  const { text } = props;
+  return (
+    <ValueAxis.Label
+      {...props}
+      text={text + symbol}
+    />
+  );
+};
 
 const toCustomLocaleString = (date: Date) =>
   date
@@ -41,65 +52,50 @@ const toCustomLocaleString = (date: Date) =>
       .replace(/:00/, '');
 
 export const App = () => {
-  const [data, setData] = React.useState<Record<string, { timestamp: number, value: number }[]>>({});
+  const [data, setData] = React.useState<Record<string, string>[]>([]);
 
   useEffect(() => {
     const load = async () => {
       const fetched = await fetch(window.location.search.substr(1));
-      const data: { timestamp: number, value: number }[] = (await fetched.json() as unknown[])
-        .map(({ timestamp, value }: any) => ({
-          timestamp,
-          value: parseFloat(value)
-        }))
-        .filter(({ value }) => value > 10 && value < 35)
-
-
-      const datas = data.reduce((pre, cur) => {
-        const key = formatDate(new Date(cur.timestamp));
-        return {
-          ...pre,
-          [key]: [cur, ...(pre[key] ? pre[key] : [])]
-        }
-      }, {} as Record<string, { timestamp: number, value: number }[]>);
-
-      setData(datas);
+      const data: Record<string, string>[] = (await fetched.json() as any).map((item: any) => ({
+        timestamp: item.timestamp,
+        airTemp: parseFloat(item.airTemp),
+        airHumidity: parseFloat(item.airHumidity),
+        waterTemp: parseFloat(item.waterTemp),
+      }));
+      setData(data);
     };
     load();
   }, [setData])
 
   console.log(data);
 
-  const newData = Object.entries(data).reduce((pre, [key, array]) => {
-      return [
-        ...pre,
-        ...array.map(({timestamp, value}) => {
-          return {
-            [key]: getMsSinceMidnight(timestamp),
-            timestamp,
-            value,
-          }
-        })
-      ]
-  }, [] as Record<string, string | number>[]);
-
-  const allKeys = Object.keys(data);
-
   return (
     <Box position="absolute" left={0} top={0} right={0} bottom={0}>
       {data ?
-        <Chart data={newData}>
+        <Chart data={data}>
           <Legend
           />
 
-          <ArgumentAxis tickFormat={() => (ms: string) => {
-            const minutes = parseInt(ms, 10) / 1000 / 60;
-            const d = new Date();
-            d.setHours(minutes / 60, minutes % 60);
-            return toCustomLocaleString(d);
-          }} />
-          <ValueAxis />
+          <ValueScale name="c" />
+          <ValueScale name="%" />
 
-          {allKeys.map((key) => <LineSeries key={key} name={key} valueField="value" argumentField={key} />)}
+          <ArgumentAxis tickFormat={() => (ms: string) => {
+            return toCustomLocaleString(new Date(ms));
+          }} />
+          <ValueAxis
+            scaleName="c"
+            labelComponent={Label(' C')}
+          />
+          <ValueAxis
+            scaleName="%"
+            position="right"
+            labelComponent={Label(' %')}
+          />
+
+          <LineSeries scaleName="c" name="airTemp" valueField="airTemp" argumentField={"timestamp"} />
+          <LineSeries scaleName="%" name="airHumidity" valueField="airHumidity" argumentField={"timestamp"} />
+          <LineSeries scaleName="c" name="waterTemp" valueField="waterTemp" argumentField={"timestamp"} />
 
           <ZoomAndPan />
         </Chart>
