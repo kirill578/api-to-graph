@@ -62,6 +62,7 @@ export const App = () => {
         airTemp: parseFloat(item.airTemp),
         airHumidity: parseFloat(item.airHumidity),
         waterTemp: parseFloat(item.waterTemp),
+        fanActive: item.fanActive ? (item.fanActive == 1 ? 100 : 0) : 0,
       }));
       setData(data);
     };
@@ -95,6 +96,7 @@ export const App = () => {
 
           <LineSeries scaleName="c" name="airTemp" valueField="airTemp" argumentField={"timestamp"} />
           <LineSeries scaleName="%" name="airHumidity" valueField="airHumidity" argumentField={"timestamp"} />
+          <LineSeries scaleName="%" name="fanActive" valueField="fanActive" argumentField={"timestamp"} />
           <LineSeries scaleName="c" name="waterTemp" valueField="waterTemp" argumentField={"timestamp"} />
 
           <ZoomAndPan />
